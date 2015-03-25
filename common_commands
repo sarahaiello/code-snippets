@@ -1,0 +1,21 @@
+survey<-DATA
+#rename variable
+names(survey)[match(c("qID_Device"  ),names(survey))]<-c("Device")
+#save variable
+save(data, file="data.RData")
+
+QP<-DATA2
+QP$Date<-as.Date(QP$Timestamp, "%m/%d/%Y")
+QP$B<-'False'
+QP$B<-ifelse(QP$A!='' |QP$B!='' ) 
+join<-merge(survey, QP, by.x="Email", by.y="Email", all.x=TRUE, all.y=TRUE)
+
+#revalue
+join7$Amount<-revalue(join$Amount, c("$1-100"="50",
+                                      "$1001-2000"="1500",
+                                      "$101-300"="200",
+                                      "$2001-3000"="2500",
+                                      "$301-500"="400",
+                                      "$501-1000"="750",
+                                      "0"="0"
+                                      ))
