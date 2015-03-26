@@ -1,0 +1,67 @@
+setwd("/Users/Sarah/Documents/CTR Prediction")
+#library("data.table")
+#library("caret")
+library("biglm")
+set.seed(1)
+
+#data<-read.csv("train.csv")
+#data<-fread("train.csv")
+#s <- sample(nrow(data), nrow(data)*0.01, replace = FALSE, prob = NULL)
+#df<- data[s,          
+#save(df,file="df.Rda")
+
+#load("df.Rdata")
+#inTrain <- createDataPartition(y = df$click,p=.75, list=FALSE)
+#training <- df[ as.numeric(inTrain),]
+#testing  <- df[-as.numeric(inTrain),]
+#save(training,file="training.Rdata")
+#save(testing,file="testing.Rdata")
+
+load("training.Rdata")
+load("testing.Rdata")
+
+#testing$site_category.f=factor(testing$site_category)
+#training$site_category.f=factor(training$site_category)
+
+#testing$app_category.f=factor(testing$app_category)
+#training$app_category.f=factor(training$app_category)
+
+#testing$device_type.f=factor(testing$device_type)
+#training$device_type.f=factor(training$device_type)
+
+#testing$device_conn_type.f=factor(testing$device_conn_type)
+#training$device_conn_type.f=factor(training$device_conn_type)
+
+var=c("site_category", "app_category", "device_type", "device_conn_type",
+   "C1", "C14", "C15","C16","C17","C18","C19","C20","C21")
+
+#training_var<-training[var]
+#training_var<-training[var]
+
+#table(training$site_category)
+training$site_category_28905ebd<-ifelse(training$site_category=="28905ebd",1,0)
+testing$site_category_28905ebd<-ifelse(testing$site_category=="28905ebd",1,0)
+
+#Logistic Regression
+#glm<-glm(click ~ C1+banner_pos+site_id+site_domain+app_id+app_domain
+#          +device_id+device_model+device_type+device_conn_type+
+#          C14+C15+C16+C17+C18+C19+C20+C21
+#          +site_category_28905ebd, data=training, family="binomial")
+
+logfunc<- bigglm(click ~ C1+C14+C15+C16+C17+C18+C19+C20+C21,
+                 data=training, family=binomial())
+summary(logfunc)
+
+p1<-predict(logfunc,training, type="response")
+p2<-ifelse(p1>=.5, 1, 0)
+p3<-ifelse(p2==training$click,1,0)
+training_correct<-as.data.frame(cbind(p1, p2, training$click, p3))
+sum(p3)
+sum(training_correct[training_correct$V3==1,training_correct$V4])
+
+v1<-predict(logfunc,testing, type="response")
+v2<-ifelse(v1>=.5, 1, 0)
+v3<-ifelse(v2==testing$click,1,0)
+testing_correct<-cbind(v1, v2, testing$click, v3)
+sum(v3)
+
